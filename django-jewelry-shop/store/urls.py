@@ -2,7 +2,7 @@ from store.forms import LoginForm, PasswordChangeForm, PasswordResetForm, SetPas
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
-
+from .views import checkout
 
 app_name = 'store'
 
@@ -18,11 +18,19 @@ urlpatterns = [
     path('checkout/', views.checkout, name="checkout"),
     path('orders/', views.orders, name="orders"),
 
+    # CRUD OPERATION 
+    path('crud/', views.crud, name="crud"),
+    path('createItem/', views.createItem, name="createItem"),
+    path('updateItem/<str:sku>/', views.updateItem, name="updateItem"),
+    path('deleteItem/<str:sku>/', views.deleteItem, name="deleteItem"),
+    path('allItem/', views.all_item_page, name="allItem"),
+
+
+
     #URL for Products
     path('product/<slug:slug>/', views.detail, name="product-detail"),
     path('categories/', views.all_categories, name="all-categories"),
     path('<slug:slug>/', views.category_products, name="category-products"),
-
     path('shop/', views.shop, name="shop"),
 
     # URL for Authentication

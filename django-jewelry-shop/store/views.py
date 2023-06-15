@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.views import View
 import decimal
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator # for Class Based Views
+from django.utils.decorators import method_decorator 
 
 
 # Create your views here
@@ -177,24 +177,99 @@ def minus_cart(request, cart_id):
 
 @login_required
 def checkout(request):
-    user = request.user
-    address_id = request.GET.get('address')
-    
-    address = get_object_or_404(Address, id=address_id)
-    # Get all the products of User in Cart
-    cart = Cart.objects.filter(user=user)
-    for c in cart:
-        # Saving all the products from Cart to Order
-        Order(user=user, address=address, product=c.product, quantity=c.quantity).save()
-        # And Deleting from Cart
-        c.delete()
-    return redirect('store:orders')
+    # user = request.user
+    # address_id = request.GET.get('address')
+    # address = get_object_or_404(Address, id=address_id)
+    # # Get all the products of User in Cart
+    # cart = Cart.objects.filter(user=user)
+    # for c in cart:
+    #     # Saving all the products from Cart to Order
+    #     Order(user=user, product=c.product, quantity=c.quantity).save()
+    #     # And Deleting from Cart
+    #     c.delete()
+    # return redirect('store:checkout')
+    return render(request,'store/checkouts.html')
 
 
 @login_required
 def orders(request):
     all_orders = Order.objects.filter(user=request.user).order_by('-ordered_date')
     return render(request, 'store/orders.html', {'orders': all_orders})
+
+
+# CRUD OPERATION
+@login_required
+def crud(request):
+    return render(request,'store/crud.html')
+
+@login_required
+def createItem(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        slug = request.POST.get('slug')
+        sku = request.POST.get('sku')
+        short_description = request.POST.get('short_description')
+        detail_description = request.POST.get('detail_description')
+        price = request.POST.get('price')
+        category_title = request.POST.get('category')
+        category = get_object_or_404(Category, title=category_title)
+        is_active = request.POST.get('is_active')
+        is_active = True if is_active == "on" else False
+        is_featured = request.POST.get('is_featured')
+        is_featured = True if is_featured == "on" else False
+
+        new_product = Product(
+            title=title,
+            slug=slug,
+            sku=sku,
+            short_description=short_description,
+            detail_description=detail_description,
+            price=price,
+            category=category,
+            is_active=is_active,
+            is_featured=is_featured
+        )
+
+        new_product.save()
+        return redirect('store:allItem')
+    else:
+        return render(request, 'store/createItem.html')
+
+@login_required
+def deleteItem(request , sku):
+    try:
+        product = Product.objects.get(sku=sku)
+        product.delete()
+        return redirect('store:allItem')
+    except Product.DoesNotExist:
+        return redirect('store:error') 
+
+@login_required
+def allItem(request):
+    return render(request,'store/allItem.html')
+
+@login_required
+def all_item_page(request):
+    products = Product.objects.all()
+    context = {
+        'products': products,
+    }
+    return render(request, 'store/allItem.html', context)
+
+@login_required
+def updateItem(request,sku):
+    product = get_object_or_404(Product,sku=sku)
+
+    if request.method == 'POST':
+        product.title = request.POST['title']
+        product.sku = request.POST['sku']
+        product.short_description = request.POST['short_description']
+        product.product_image = request.POST['product_image']
+        product.price = request.POST['price']
+        product.save()
+        return redirect('store:allItem')
+    
+    return render(request, 'store/updateItem.html',{'product': product})
 
 
 
